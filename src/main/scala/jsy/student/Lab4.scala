@@ -50,8 +50,11 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
   }
   
   def mapFirst[A](l: List[A])(f: A => Option[A]): List[A] = l match {
-    case Nil => ???
-    case h :: t => ???
+    case Nil => Nil
+    case h :: t => f(h) match {
+      case  Some(a) => a::t
+      case _ => h::mapFirst(t) (f)
+    }
   }
   
   /* Trees */
