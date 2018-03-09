@@ -38,12 +38,13 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
   /* Lists */
   
   def compressRec[A](l: List[A]): List[A] = l match {
-    case Nil | _ :: Nil => ???
-    case h1 :: (t1 @ (h2 :: _)) => ???
+    case Nil | _ :: Nil => l
+    case h1 :: (t1 @ (h2 :: _)) => if (h1==h2) compressRec(t1) else h1 :: compressRec(t1)
   }
   
   def compressFold[A](l: List[A]): List[A] = l.foldRight(Nil: List[A]){
-    (h, acc) => ???
+    (h, acc) => acc match {
+    }
   }
   
   def mapFirst[A](l: List[A])(f: A => Option[A]): List[A] = l match {
