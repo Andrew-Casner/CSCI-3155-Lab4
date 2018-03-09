@@ -80,7 +80,7 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
     val (b, _) = foldLeft(t)((true, None: Option[Int])){
       (acc, x) => acc match {
         case (b1, None) => (b1, Some(x))
-        case (b1, Some(e)) => if(e<x) (b1&&true, Some(e)) else (false, Some(e))
+        case (b1, Some(e)) => if(e<x) (b1, Some(e)) else (false, Some(e))
       }
     }
     b
@@ -101,7 +101,7 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
 
     e match {
       case Print(e1) => typeof(env, e1); TUndefined
-      case N(_) => ???
+      case N(_) => TNumber
       case B(_) => ???
       case Undefined => ???
       case S(_) => ???
