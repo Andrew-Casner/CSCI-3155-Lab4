@@ -44,6 +44,8 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
   
   def compressFold[A](l: List[A]): List[A] = l.foldRight(Nil: List[A]){
     (h, acc) => acc match {
+      case h1::_ => if(h1==h) acc else h:: acc
+      case _ => h::acc
     }
   }
   
