@@ -111,10 +111,17 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
         case TNumber => TNumber
         case tgot => err(tgot, e1)
       }
-      case Unary(Not, e1) =>
-        ???
+      case Unary(Not, e1) => typeof(env, e1) match {
+        case TBool => TBool
+        case tgot => err(tgot, e1)
+      }
       case Binary(Plus, e1, e2) =>
-        ???
+        (typeof(env, e1), typeof(env, e2)) match {
+          case (TString, TString) => TString
+          case (TNumber, TNumber) => TNumber
+          case (tgot, _) => err(tgot, e1)
+          case (_, tgot) => err(tgot, e2)
+        }
       case Binary(Minus|Times|Div, e1, e2) => 
         ???
       case Binary(Eq|Ne, e1, e2) =>
