@@ -149,7 +149,11 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
           case (_, tgot) => err(tgot, e2)
         }
       case Binary(Seq, e1, e2) =>
-        ???
+        (typeof(env, e1), typeof(env, e2)) match {
+          case (t1, t2) => t2
+          case (tgot, _) => err(tgot, e1)
+          case (_, tgot) => err(tgot, e2)
+        }
       case If(e1, e2, e3) =>
         ???
       case Function(p, params, tann, e1) => {
