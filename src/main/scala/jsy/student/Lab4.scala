@@ -1,6 +1,7 @@
 package jsy.student
 
 import jsy.lab4.Lab4Like
+import sun.nio.cs.ext.Big5_HKSCS_2001
 
 object Lab4 extends jsy.util.JsyApplication with Lab4Like {
   import jsy.lab4.ast._
@@ -77,7 +78,10 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
 
   def strictlyOrdered(t: Tree): Boolean = {
     val (b, _) = foldLeft(t)((true, None: Option[Int])){
-      ???
+      (acc, x) => acc match {
+        case (b1, None) => (b1, Some(x))
+        case (b1, Some(e)) => if(e<x) (b1&&true, Some(e)) else (false, Some(e))
+      }
     }
     b
   }
