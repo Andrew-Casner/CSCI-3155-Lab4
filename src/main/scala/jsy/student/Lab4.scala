@@ -205,7 +205,18 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
     require(isValue(v2), s"inequalityVal: v2 ${v2} is not a value")
     require(bop == Lt || bop == Le || bop == Gt || bop == Ge)
     (v1, v2) match {
-      case _ => ??? // delete this line when done
+      case (S(s1), S(s2)) => bop match {
+        case Lt => if(s1 < s2) true else false
+        case Le => if(s1 <= s2) true else false
+        case Gt => if(s1 > s2) true else false
+        case Ge => if(s1 >= s2) true else false
+      }
+      case (N(n1),N(n2)) => bop match {
+        case Lt => if(n1 < n2) true else false
+        case Le => if(n1 <= n2) true else false
+        case Gt => if(n1 > n2) true else false
+        case Ge => if(n1 >= n2) true else false
+      }
     }
   }
 
