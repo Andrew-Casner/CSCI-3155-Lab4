@@ -156,30 +156,41 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
           case (_, tgot, _)                => err(tgot, e2)
           case (_, _, tgot)                => err(tgot, e3)
         }
-      case Function(p, params, tann, e1) => {
+      case Function(p, params, tann, e1)   => {
         // Bind to env1 an environment that extends env with an appropriate binding if
         // the function is potentially recursive.
         val env1 = (p, tann) match {
-          /***** Add cases here *****/
-          case _ => err(TUndefined, e1)
+          case(None,_)                     => env
+          case(Some(x),Some(t))            => extend(env,x,TFunction(params,t))
+          case _                           => err(TUndefined, e1)
         }
         // Bind to env2 an environment that extends env1 with bindings for params.
-        val env2 = ???
+        val env2 = params.foldLeft(env1){
+          case(acc,(xi,MTyp(_,ti)))        => extend(acc,xi,ti)
+        }
         // Infer the type of the function body
-        val t1 = ???
-        // Check with the possibly annotated return type
-        ???
+        val t1 = typeof(env2,e1)
+        tann match{
+          case(Some(t)) if(t1==t)          => TFunction(params,t)
+          case(None)                       => TFunction(params,t1)
+        }
       }
-      case Call(e1, args) => typeof(env, e1) match {
+      case Call(e1, args)                  => typeof(env, e1) match {
         case TFunction(params, tret) if (params.length == args.length) =>
-          (params zip args).foreach {
-            ???
+          val fPairs = params zip args
+          fPairs.foreach {
+            fPair =>
+              val(v1,v2) = fPair
+              if(v1._2.t != typeof(env,v2)) err(typeof(env,v2),v2)
           };
           tret
         case tgot => err(tgot, e1)
       }
-      case Obj(fields) => ???
-      case GetField(e1, f) => ???
+      case Obj(fields)                       => TObj(fields mapValues( exp => typeof(env,exp)));
+      case GetField(e1, f)                   => typeof(env,e1) match {
+          case (TObj(fields))                => if(fields.contains(f)) fields(f) else throw StaticTypeError(typeof(env,e1),e1,e)
+          case _                             => throw StaticTypeError(typeof(env,e1),e1,e)
+        }
     }
   }
   
