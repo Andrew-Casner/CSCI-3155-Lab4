@@ -267,25 +267,18 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
     def ren(env: Map[String,String], e: Expr): Expr = {
       e match {
         case N(_) | B(_) | Undefined | S(_) => e
-        case Print(e1) => Print(ren(env, e1))
+        case Print(e1)                      => Print(ren(env, e1))
 
-        case Unary(uop, e1) => ???
-        case Binary(bop, e1, e2) => ???
-        case If(e1, e2, e3) => ???
+        case Unary(uop, e1)                 => Unary(uop, ren(env, e1))
+        case Binary(bop, e1, e2)            => Binary(bop, ren(env, e1), ren(env, e2))
+        case If(e1, e2, e3)                 => If(ren(env, e1), ren(env, e2), ren(env, e3))
 
-        case Var(y) =>
-          ???
-        case Decl(mode, y, e1, e2) =>
-          val yp = fresh(y)
-          ???
-
+        case Var(y)                         => if(env.contains(y)) Var(env(y)) else Var(y)
+        case Decl(mode, y, e1, e2)          => Decl(mode, fresh(y), ren(env, e1), ren(env + (y -> fresh(y)), e2))
         case Function(p, params, retty, e1) => {
           val (pp, envp): (Option[String], Map[String,String]) = p match {
-            case None => (None, env)
-            case Some(x) => {
-              val pp = fresh(x)
-              (Some(pp), extend(env, x, pp))
-            }
+            case None                       => (None, env)
+            case Some(x)                    => (Some(fresh(x)), extend(env, x, fresh(x)))
           }
           val (paramsp, envpp) = params.foldRight( (Nil: List[(String,MTyp)], envp) ) {
             case ((paramname, paramtype), (params, env)) => {
