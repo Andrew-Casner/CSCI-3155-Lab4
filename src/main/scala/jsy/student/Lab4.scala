@@ -281,13 +281,19 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
 
         case Function(p, params, retty, e1) => {
           val (pp, envp): (Option[String], Map[String,String]) = p match {
-            case None => ???
-            case Some(x) => ???
+            case None => (None, env)
+            case Some(x) => {
+              val pp = fresh(x)
+              (Some(pp), extend(env, x, pp))
+            }
           }
           val (paramsp, envpp) = params.foldRight( (Nil: List[(String,MTyp)], envp) ) {
-            ???
+            case ((paramname, paramtype), (params, env)) => {
+              val pfresh = fresh(paramname)
+              ((pfresh, paramtype) :: params, extend(env, paramname, pfresh))
+            }
           }
-          ???
+          Function(pp, paramsp, retty, ren(envpp, e1))
         }
 
         case Call(e1, args) => ???
