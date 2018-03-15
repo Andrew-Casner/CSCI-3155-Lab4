@@ -290,8 +290,8 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
 
   /* Check whether or not an expression is reduced enough to be applied given a mode. */
   def isRedex(mode: Mode, e: Expr): Boolean = mode match {
-    case MConst => ???
-    case MName => ???
+    case MConst => !isValue(e)
+    case MName => false
   }
 
   def step(e: Expr): Expr = {
