@@ -360,20 +360,21 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
         v1 match {
           case Function(p, params, _, e1) => {
             val pazip = params zip args
-            if (???) {
+            if (pazip.forall{ case((_, MTyp(m, _)), ei) => !isRedex(m, ei) }) {
               val e1p = pazip.foldRight(e1) {
-                ???
+                case (((x, _), argv), acc) => substitute(acc, argv, x)
               }
               p match {
-                case None     => ???
+                case None     => e1p
                 case Some(x1) => ???
               }
             }
             else {
               val pazipp = mapFirst(pazip) {
-                ???
+                case (param@(_: String, MTyp(m, _)), arg: Expr) if isRedex(m, arg) => Some((param, step(arg)))
+                case _                                                             => None
               }
-              ???
+              Call(v1, pazipp.unzip._2)
             }
           }
           case _ => throw StuckError(e)
