@@ -382,11 +382,24 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
         /***** New cases for Lab 4. */
 
       /* Inductive Cases: Search Rules */
-      case Print(e1) => Print(step(e1))
-        /***** Cases from Lab 3. */
-      case Unary(uop, e1) => ???
+      case Print(e1)                            => Print(step(e1))
+      /***** Cases from Lab 3. */
+      case Unary(uop, e1)                       => Unary(uop, step(e1))
+      case Binary(bop, e1, e2) if !isValue(e1)  => Binary(bop, step(e1) ,e2)
+      case Binary(bop, v1, e2) if isValue(v1)   => Binary(bop, v1, step(e2))
+      case If(e1, e2, e3)                       => If(step(e1) , e2, e3)
+      case Decl(mode, x, e1, e2)                => Decl(mode, x, step(e1), e2)
         /***** More cases here */
         /***** Cases needing adapting from Lab 3 */
+      case Obj(fields) if !isValue(e) => fields find {(f) => !isValue(f._2)} match { // finds first key that doesn't map to value
+        case None          => throw StuckError(e) // we shouldn't reach this
+        case Some((ff,e1)) => Obj(fields + (ff -> step(e1))) // update this key to map to stepped e
+      }
+      // search getfield
+      case GetField(e1, f) => e1 match {
+        case Obj(_)        => GetField(step(e1), f) // step object
+        case _             => throw StuckError(e)
+      }
       case Call(v1 @ Function(_, _, _, _), args) => ???
       case Call(e1, args) => ???
         /***** New cases for Lab 4. */
