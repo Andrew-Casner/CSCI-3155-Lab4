@@ -233,25 +233,27 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
   def substitute(e: Expr, esub: Expr, x: String): Expr = {
     def subst(e: Expr): Expr = e match {
       case N(_) | B(_) | Undefined | S(_) => e
-      case Print(e1) => Print(substitute(e1, esub, x))
-        /***** Cases from Lab 3 */
-      case Unary(uop, e1) => ???
-      case Binary(bop, e1, e2) => ???
-      case If(e1, e2, e3) => ???
-      case Var(y) => ???
-      case Decl(mode, y, e1, e2) => ???
-        /***** Cases needing adapting from Lab 3 */
-      case Function(p, params, tann, e1) =>
-        ???
-      case Call(e1, args) => ???
-        /***** New cases for Lab 4 */
-      case Obj(fields) => ???
-      case GetField(e1, f) => ???
+      case Print(e1)                      => Print(substitute(e1, esub, x))
+      /***** Cases from Lab 3 */
+      case Unary(uop, e1)                 => Unary(uop, subst(e1))
+      case Binary(bop, e1, e2)            => Binary(bop, subst(e1), subst(e2))
+      case If(e1, e2, e3)                 => If(subst(e1), subst(e2), subst(e3))
+      case Var(y)                         => if(y==x) esub else e
+      case Decl(mode, y, e1, e2)          =>  if (y == x) Decl(mode, y, subst(e1), e2) else Decl(mode, y, subst(e1),  subst(e2))
+      /***** Cases needing adapting from Lab 3 */
+      case Function(p, params, tann, e1)  =>
+        if(params.exists((parameter: (String, MTyp)) => parameter._1 == x))
+          Function(p, params, tann, e1)
+        else
+          Function(p, params, tann, subst(e1))
+      case Call(e1, args)                 => Call(subst(e1), args.map{case (arg) => subst(arg)})
+      /***** New cases for Lab 4 */
+      case Obj(fields)                    => Obj(fields.mapValues(expr=> subst(expr)))
+      case GetField(e1, f)                => GetField(subst(e1), f)
     }
-
-    val fvs = freeVars(???)
-    def fresh(x: String): String = if (???) fresh(x + "$") else x
-    subst(???)
+    val fvs = freeVars(esub)
+    def fresh(x: String): String = if (fvs.contains(x)) fresh(x + "$") else x
+    subst(e)
   }
 
   /* Rename bound variables in e */
