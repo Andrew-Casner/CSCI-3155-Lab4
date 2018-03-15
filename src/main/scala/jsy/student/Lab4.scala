@@ -39,22 +39,22 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
   /* Lists */
   
   def compressRec[A](l: List[A]): List[A] = l match {
-    case Nil | _ :: Nil => l
+    case Nil | _ :: Nil         => l
     case h1 :: (t1 @ (h2 :: _)) => if (h1==h2) compressRec(t1) else h1 :: compressRec(t1)
   }
   
   def compressFold[A](l: List[A]): List[A] = l.foldRight(Nil: List[A]){
-    (h, acc) => acc match {
+    (h, acc)     => acc match {
       case h1::_ => if(h1==h) acc else h:: acc
-      case _ => h::acc
+      case _     => h::acc
     }
   }
   
   def mapFirst[A](l: List[A])(f: A => Option[A]): List[A] = l match {
-    case Nil => Nil
-    case h :: t => f(h) match {
+    case Nil        => Nil
+    case h :: t     => f(h) match {
       case  Some(a) => a::t
-      case _ => h::mapFirst(t) (f)
+      case _        => h::mapFirst(t) (f)
     }
   }
   
@@ -62,7 +62,7 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
 
   def foldLeft[A](t: Tree)(z: A)(f: (A, Int) => A): A = {
     def loop(acc: A, t: Tree): A = t match {
-      case Empty => acc
+      case Empty         => acc
       case Node(l, d, r) => loop(f(loop(acc,l),d),r)
     }
     loop(z, t)
@@ -78,8 +78,8 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
 
   def strictlyOrdered(t: Tree): Boolean = {
     val (b, _) = foldLeft(t)((true, None: Option[Int])){
-      (acc, x) => acc match {
-        case (b1, None) => (b1, Some(x))
+      (acc, x)             => acc match {
+        case (b1, None)    => (b1, Some(x))
         case (b1, Some(e)) => if(e<x) (b1, Some(e)) else (false, Some(e))
       }
     }
@@ -92,74 +92,69 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
   // worth studying to see how library methods are used.
   def hasFunctionTyp(t: Typ): Boolean = t match {
     case TFunction(_, _) => true
-    case TObj(fields) if (fields exists { case (_, t) => hasFunctionTyp(t) }) => true
-    case _ => false
+    case TObj(fields) if fields exists {
+      case (_, t)        => hasFunctionTyp(t)
+    }                    => true
+    case _               => false
   }
   
   def typeof(env: TEnv, e: Expr): Typ = {
     def err[T](tgot: Typ, e1: Expr): T = throw StaticTypeError(tgot, e1, e)
 
     e match {
-      case Print(e1) => typeof(env, e1); TUndefined
-      case N(_) => TNumber
-      case B(_) => TBool
-      case Undefined => TUndefined
-      case S(_) => TString
-      case Var(x) => lookup(env, x)
-      case Decl(mode, x, e1, e2) => typeof(env+(x->typeof(env, e1)), e2)
-      case Unary(Neg, e1) => typeof(env, e1) match {
-        case TNumber => TNumber
-        case tgot => err(tgot, e1)
+      case Print(e1)                       => typeof(env, e1); TUndefined
+      case N(_)                            => TNumber
+      case B(_)                            => TBool
+      case Undefined                       => TUndefined
+      case S(_)                            => TString
+      case Var(x)                          => lookup(env, x)
+      case Decl(mode, x, e1, e2)           => typeof(env+(x->typeof(env, e1)), e2)
+      case Unary(Neg, e1)                  => typeof(env, e1) match {
+        case TNumber                       => TNumber
+        case tgot                          => err(tgot, e1)
       }
-      case Unary(Not, e1) => typeof(env, e1) match {
-        case TBool => TBool
-        case tgot => err(tgot, e1)
+      case Unary(Not, e1)                  => typeof(env, e1) match {
+        case TBool                         => TBool
+        case tgot                          => err(tgot, e1)
       }
-      case Binary(Plus, e1, e2) =>
-        (typeof(env, e1), typeof(env, e2)) match {
-          case (TString, TString) => TString
-          case (TNumber, TNumber) => TNumber
-          case (tgot, _) => err(tgot, e1)
-          case (_, tgot) => err(tgot, e2)
+      case Binary(Plus, e1, e2)            => (typeof(env, e1), typeof(env, e2)) match {
+          case (TString, TString)          => TString
+          case (TNumber, TNumber)          => TNumber
+          case (tgot, _)                   => err(tgot, e1)
+          case (_, tgot)                   => err(tgot, e2)
         }
-      case Binary(Minus|Times|Div, e1, e2) =>
-        (typeof(env, e1), typeof(env, e2)) match {
-          case (TNumber, TNumber) => TNumber
-          case (tgot, _) => err(tgot, e1)
-          case (_, tgot) => err(tgot, e2)
+      case Binary(Minus|Times|Div, e1, e2) => (typeof(env, e1), typeof(env, e2)) match {
+          case (TNumber, TNumber)          => TNumber
+          case (tgot, _)                   => err(tgot, e1)
+          case (_, tgot)                   => err(tgot, e2)
         }
-      case Binary(Eq|Ne, e1, e2) =>
-        (typeof(env, e1), typeof(env, e2)) match {
-          case (TString, TString) => TBool
-          case (TNumber, TNumber) => TBool
-          case (tgot, _) => err(tgot, e1)
-          case (_, tgot) => err(tgot, e2)
+      case Binary(Eq|Ne, e1, e2)           => (typeof(env, e1), typeof(env, e2)) match {
+          case (TString, TString)          => TBool
+          case (TNumber, TNumber)          => TBool
+          case (tgot, _)                   => err(tgot, e1)
+          case (_, tgot)                   => err(tgot, e2)
         }
-      case Binary(Lt|Le|Gt|Ge, e1, e2) =>
-        (typeof(env, e1), typeof(env, e2)) match {
-          case (TString, TString) => TBool
-          case (TNumber, TNumber) => TBool
-          case (tgot, _) => err(tgot, e1)
-          case (_, tgot) => err(tgot, e2)
+      case Binary(Lt|Le|Gt|Ge, e1, e2)     => (typeof(env, e1), typeof(env, e2)) match {
+          case (TString, TString)          => TBool
+          case (TNumber, TNumber)          => TBool
+          case (tgot, _)                   => err(tgot, e1)
+          case (_, tgot)                   => err(tgot, e2)
         }
-      case Binary(And|Or, e1, e2) =>
-        (typeof(env, e1), typeof(env, e2)) match {
-          case (TBool, TBool) => TBool
-          case (tgot, _) => err(tgot, e1)
-          case (_, tgot) => err(tgot, e2)
+      case Binary(And|Or, e1, e2)          => (typeof(env, e1), typeof(env, e2)) match {
+          case (TBool, TBool)              => TBool
+          case (tgot, _)                   => err(tgot, e1)
+          case (_, tgot)                   => err(tgot, e2)
         }
-      case Binary(Seq, e1, e2) =>
-        (typeof(env, e1), typeof(env, e2)) match {
-          case (t1, t2) => t2
-          case (tgot, _) => err(tgot, e1)
-          case (_, tgot) => err(tgot, e2)
+      case Binary(Seq, e1, e2)             => (typeof(env, e1), typeof(env, e2)) match {
+          case (t1, t2)                    => t2
+          case (tgot, _)                   => err(tgot, e1)
+          case (_, tgot)                   => err(tgot, e2)
         }
-      case If(e1, e2, e3) =>
-        (typeof(env, e1), typeof(env, e2), typeof(env, e3)) match {
-            case  (TBool, e2, e3) if(e2==e3) => e2
-          case (tgot, _, _) => err(tgot, e1)
-          case (_, tgot, _) => err(tgot, e2)
-          case (_, _, tgot) => err(tgot, e3)
+      case If(e1, e2, e3)                  => (typeof(env, e1), typeof(env, e2), typeof(env, e3)) match {
+          case  (TBool, e2, e3) if(e2==e3) => e2
+          case (tgot, _, _)                => err(tgot, e1)
+          case (_, tgot, _)                => err(tgot, e2)
+          case (_, _, tgot)                => err(tgot, e3)
         }
       case Function(p, params, tann, e1) => {
         // Bind to env1 an environment that extends env with an appropriate binding if
@@ -206,16 +201,16 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
     require(bop == Lt || bop == Le || bop == Gt || bop == Ge)
     (v1, v2) match {
       case (S(s1), S(s2)) => bop match {
-        case Lt => if(s1 < s2) true else false
-        case Le => if(s1 <= s2) true else false
-        case Gt => if(s1 > s2) true else false
-        case Ge => if(s1 >= s2) true else false
+        case Lt           => if(s1 < s2) true else false
+        case Le           => if(s1 <= s2) true else false
+        case Gt           => if(s1 > s2) true else false
+        case Ge           => if(s1 >= s2) true else false
       }
-      case (N(n1),N(n2)) => bop match {
-        case Lt => if(n1 < n2) true else false
-        case Le => if(n1 <= n2) true else false
-        case Gt => if(n1 > n2) true else false
-        case Ge => if(n1 >= n2) true else false
+      case (N(n1),N(n2))  => bop match {
+        case Lt           => if(n1 < n2) true else false
+        case Le           => if(n1 <= n2) true else false
+        case Gt           => if(n1 > n2) true else false
+        case Ge           => if(n1 >= n2) true else false
       }
     }
   }
