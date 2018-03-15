@@ -308,10 +308,54 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
     require(!isValue(e), s"step: e ${e} to step is a value")
     e match {
       /* Base Cases: Do Rules */
-      case Print(v1) if isValue(v1) => println(pretty(v1)); Undefined
+      case Print(v1) if isValue(v1)                           => println(pretty(v1)); Undefined
         /***** Cases needing adapting from Lab 3. */
-      case Unary(Neg, v1) if isValue(v1) => ???
-        /***** More cases here */
+      case Unary(Neg, v1) if isValue(v1)                      => v1 match {
+        case N(n1)                                            => N(-n1)
+        case _                                                => throw StuckError(e)
+      }
+      case Unary(Not, v1) if isValue(v1)                      => v1 match {
+        case B(b1)                                            => B(!b1)
+        case _                                                => throw StuckError(e)
+      }
+      case Binary(Seq, v1, e2) if isValue(v1)                 => e2
+      case Binary(Plus, v1, v2) if isValue(v1) && isValue(v2) => (v1,v2) match {
+        case (S(s1), S(s2))                                   => S(s1 + s2)
+        case (N(n1), N(n2))                                   => N(n1+n2)
+        case _                                                => throw StuckError(e)
+      }
+      case Binary(bop, v1, v2) if isValue(v1) && isValue(v2)  => (v1,v2) match {
+        case (N(n1), N(n2))                                   => bop match {
+          case Minus                                          => N(n1 + n2)
+          case Div                                            => N(n1/n2)
+          case Times                                          => N(n1*n2)
+          case Lt | Le | Gt | Ge                              => B(inequalityVal(bop, v1, v2))
+          case Eq                                             => B(v1 == v2)
+          case Ne                                             => B(v1 != v2)
+        }
+        case _                                                => throw StuckError(e)
+      }
+      case Binary(And, v1, e2) if isValue(v1)                 => v1 match {
+        case B(b)                                             => if(b) e2 else B(false)
+        case _                                                => throw StuckError(e)
+      }
+      case Binary(Or, v1, e2) if isValue(v1)                  => v1 match {
+        case B(b)                                             => if(b) B(true) else e2
+        case _                                                => throw StuckError(e)
+      }
+      case If(v1, e2, e3) if isValue(v1)                      => v1 match {
+        case B(b)                                             => if(b) e2 else e3
+        case _                                                => throw StuckError(e)
+      }
+      case Decl(mode, x, e1, e2) if !isRedex(mode, e1)        => substitute(e2, e1, x)
+      case GetField(v1, f) if isValue(v1)                     => v1 match {
+        case Obj(fields)                                      => fields.get(f) match {
+          case None                                           => throw StuckError(e)
+          case Some(v)                                        => v
+        }
+        case _                                                => throw StuckError(e)
+      }
+      /***** More cases here */
       case Call(v1, args) if isValue(v1) =>
         v1 match {
           case Function(p, params, _, e1) => {
@@ -321,7 +365,7 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
                 ???
               }
               p match {
-                case None => ???
+                case None     => ???
                 case Some(x1) => ???
               }
             }
