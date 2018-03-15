@@ -222,7 +222,10 @@ object Lab4 extends jsy.util.JsyApplication with Lab4Like {
 
   /* This should be the same code as from Lab 3 */
   def iterate(e0: Expr)(next: (Expr, Int) => Option[Expr]): Expr = {
-    def loop(e: Expr, n: Int): Expr = ???
+    def loop(e: Expr, n: Int): Expr = next(e,n) match {
+      case None => e
+      case Some(e) => loop(e,n + 1)
+    }
     loop(e0, 0)
   }
 
